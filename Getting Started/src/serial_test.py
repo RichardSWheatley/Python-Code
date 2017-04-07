@@ -1,72 +1,37 @@
+import argparse
 import serial
+from myserial import SimpleSerialWrapper
 from time import sleep
 
-import argparse
-
-class SerialWrapper:
-    def __init__(self):
-        self.ser = serial.Serial()
-        
-    def portOpen(self):
-        self.ser.open()
-        
-    def flushData(self):
-        self.ser.flush()
-
-    def sendData(self, data):
-        self.ser.write(data.encode())
-        
-    def getData(self, read_size):
-        if read_size == 0:
-            return self.ser.readline()
-        
-        return self.ser.read(read_size)
-        
-    def setParams(self, device, baud, time_out):
-        # The following line was just a test
-        # print(device, baud, time_out)
-        self.ser.baudrate = baud
-        self.ser.port = device
-        self.ser.timeout = time_out
-        
-    def getBaud(self):
-        return self.ser.baudrate
-        
-    def getDevice(self):
-        return self.ser.port
-        
-    def getTimeout(self):
-        return self.ser.timeout
-
-def get_info():
-    compass_serial.sendData('name di.\r')
-    compass_serial.sendData('serialnumber di.\r')  
-    compass_serial.sendData('VERSION di.\r')    
+def get_info(serial_port):
+    serial_port.sendData('name di.\r')
+    serial_port.sendData('serialnumber di.\r')  
+    serial_port.sendData('VERSION di.\r')    
         
 # Setup compass to output data with a checksum.        
-def setup_compass_output():
-    compass_serial.sendData('\x13')
+def setup_compass_output(serial_port):
+    serial_port.sendData('\x13')
     sleep(0.01)
-    compass_serial.flushData()
+    serial_port.flushData()
     sleep(0.01)
 
+def get_serial_value(size, serial_port):
+    return serial_port.getData(size)
 
-def get_serial_value(size):
-    return compass_serial.getData(size)
 
-compass_serial = SerialWrapper()
 
 def main(args):
     try:
+        compass_serial = SimpleSerialWrapper()
         # The following line was a test to see if args contain the correct data
         # print(args)
         compass_serial.setParams(args.device, args.baud_rate, args.time_out)
         compass_serial.portOpen()
-        setup_compass_output()
-        get_info()
+        setup_compass_output(compass_serial)
+        get_info(compass_serial)
         count = 8
         while count != 0:
-            data = get_serial_value(0) # '0' is for Serial.readline()
+            data = get_serial_value(0, compass_serial) # '0' is for Serial.readline()
             print(count)
             if "=" in data.decode('cp1252'): 
                 print(data.decode('cp1252').strip('\r\n'))
