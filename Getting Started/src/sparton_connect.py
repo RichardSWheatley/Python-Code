@@ -78,11 +78,11 @@ def get_serial_value(self, size):
 compass_serial = SerialWrapper()
 
 def main():
-    compass_serial.setParams('COM1', 115200, 1)
-    compass_serial.portOpen()
-    setup_compass_output()
-    compass_serial.flushData()
     try:
+        compass_serial.setParams('COM1', 115200, 1)
+        compass_serial.portOpen()
+        setup_compass_output()
+        compass_serial.flushData()
         while True:
             data = compass_serial.getData(0) # '0' is for Serial.readline()
             print(data.decode('cp1252').strip('\n'))
